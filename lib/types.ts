@@ -11,6 +11,21 @@ export interface Profile {
   updated_at: string
 }
 
+export type VendorApplicationStatus = 'pending' | 'approved' | 'rejected'
+
+export interface VendorApplication {
+  id: string
+  user_id: string
+  business_name: string
+  contact_phone: string
+  message: string | null
+  status: VendorApplicationStatus
+  reviewed_at: string | null
+  reviewed_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Category {
   id: string
   name: string

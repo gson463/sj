@@ -51,7 +51,10 @@ const SECTIONS = {
     id: 'marketplace',
     labelKey: 'admin.nav.marketplaceGroup',
     icon: Store,
-    children: [{ href: '/admin/marketplace', labelKey: 'admin.nav.marketplaceOverview' }],
+    children: [
+      { href: '/admin/marketplace', labelKey: 'admin.nav.marketplaceOverview' },
+      { href: '/admin/marketplace/applications', labelKey: 'admin.nav.sellerApplications' },
+    ],
   },
   orders: {
     id: 'orders',

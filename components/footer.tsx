@@ -8,19 +8,13 @@ import { useLanguage } from '@/lib/i18n/language-context'
 export function Footer() {
   const { t, locale } = useLanguage()
 
-  const quickLinks = locale === 'en' 
-    ? [
-        { href: '/shop', label: 'Shop' },
-        { href: '#how-it-works', label: 'Lipa Kidogo Kidogo' },
-        { href: '/about', label: 'About Us' },
-        { href: '/faq', label: 'FAQ' },
-      ]
-    : [
-        { href: '/shop', label: 'Duka' },
-        { href: '#how-it-works', label: 'Lipa Kidogo Kidogo' },
-        { href: '/about', label: 'Kuhusu Sisi' },
-        { href: '/faq', label: 'Maswali Yanayoulizwa' },
-      ]
+  const quickLinks = [
+    { href: '/shop', label: t('nav.shop') },
+    { href: '/sell', label: t('nav.sell') },
+    { href: '#how-it-works', label: t('nav.lipaKidogo') },
+    { href: '/about', label: t('nav.about') },
+    { href: '/faq', label: locale === 'en' ? 'FAQ' : 'Maswali Yanayoulizwa' },
+  ]
 
   const supportLinks = locale === 'en'
     ? [

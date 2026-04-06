@@ -31,6 +31,7 @@ export function Header({ user, dashboardHref = '/dashboard' }: HeaderProps) {
   const navLinks = [
     { href: '/', label: t("nav.home") },
     { href: '/shop', label: t('nav.shop') },
+    { href: '/sell', label: t('nav.sell') },
     { href: '/lipa-kidogo', label: t("nav.lipaKidogo") },
     { href: '/shop?category=accessories', label: t("nav.accessories") },
   ]
