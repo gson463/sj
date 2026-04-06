@@ -9,15 +9,11 @@ export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !anonKey) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(
-        '[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.local and add your project URL and anon key.',
-      )
-      return supabaseResponse
-    }
-    throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Configure them in your environment.',
+    // Never throw from middleware — Vercel returns 500 MIDDLEWARE_INVOCATION_FAILED for the whole site.
+    console.warn(
+      '[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Add them in .env.local (dev) or Vercel Project → Settings → Environment Variables (production). Auth/session refresh is skipped until configured.',
     )
+    return supabaseResponse
   }
 
   // With Fluid compute, don't put this client in a global environment
