@@ -9,7 +9,7 @@ export async function GET() {
   const { data: rows, error: qErr } = await supabase
     .from('vendor_applications')
     .select(
-      'id, user_id, business_name, contact_phone, message, status, reviewed_at, reviewed_by, created_at, updated_at, profiles(full_name, phone)',
+      'id, user_id, business_name, contact_phone, message, business_details, status, reviewed_at, reviewed_by, created_at, updated_at, profiles(full_name, phone)',
     )
     .order('created_at', { ascending: false })
 

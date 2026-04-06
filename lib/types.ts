@@ -13,12 +13,27 @@ export interface Profile {
 
 export type VendorApplicationStatus = 'pending' | 'approved' | 'rejected'
 
+/** Submitted with seller application — used for admin verification */
+export type VendorBusinessDetails = {
+  business_type: 'individual' | 'registered_company' | 'partnership' | 'other'
+  registration_or_tin?: string | null
+  business_email: string
+  physical_address: string
+  city: string
+  region: string
+  brands_categories: string
+  years_in_business?: string | null
+  website_or_social?: string | null
+}
+
 export interface VendorApplication {
   id: string
   user_id: string
   business_name: string
   contact_phone: string
   message: string | null
+  /** Present when migration 010 has been applied */
+  business_details?: VendorBusinessDetails | Record<string, unknown> | null
   status: VendorApplicationStatus
   reviewed_at: string | null
   reviewed_by: string | null

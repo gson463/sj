@@ -2,10 +2,18 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Check, Loader2, RefreshCw, X } from 'lucide-react'
+import type { VendorBusinessDetails } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useLanguage } from '@/lib/i18n/language-context'
 
 type Row = {
@@ -14,11 +22,31 @@ type Row = {
   business_name: string
   contact_phone: string
   message: string | null
+  business_details: VendorBusinessDetails | Record<string, unknown> | null
   status: 'pending' | 'approved' | 'rejected'
   reviewed_at: string | null
   created_at: string
   applicant_name: string | null
   applicant_phone: string | null
+}
+
+function isVendorBusinessDetails(v: unknown): v is VendorBusinessDetails {
+  return (
+    !!v &&
+    typeof v === 'object' &&
+    'business_email' in v &&
+    typeof (v as VendorBusinessDetails).business_email === 'string'
+  )
+}
+
+function businessTypeLabel(type: string, t: (key: string) => string) {
+  const keys: Record<string, string> = {
+    individual: 'sellerApply.businessTypeIndividual',
+    registered_company: 'sellerApply.businessTypeCompany',
+    partnership: 'sellerApply.businessTypePartnership',
+    other: 'sellerApply.businessTypeOther',
+  }
+  return keys[type] ? t(keys[type]) : type
 }
 
 export function AdminVendorApplicationsContent() {
@@ -28,6 +56,7 @@ export function AdminVendorApplicationsContent() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'pending' | 'all'>('pending')
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [detailRow, setDetailRow] = useState<Row | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -135,6 +164,7 @@ export function AdminVendorApplicationsContent() {
                   <TableHead>{t('admin.vendorApps.business')}</TableHead>
                   <TableHead>{t('admin.vendorApps.phone')}</TableHead>
                   <TableHead>{t('admin.vendorApps.message')}</TableHead>
+                  <TableHead>{t('admin.vendorApps.verification')}</TableHead>
                   <TableHead>{t('admin.vendorApps.status')}</TableHead>
                   <TableHead>{t('admin.vendorApps.submitted')}</TableHead>
                   <TableHead className="text-right">{t('admin.vendorApps.actions')}</TableHead>
@@ -155,6 +185,15 @@ export function AdminVendorApplicationsContent() {
                       <TableCell className="whitespace-nowrap">{phone}</TableCell>
                       <TableCell className="max-w-[200px] truncate text-muted-foreground" title={r.message || undefined}>
                         {r.message || '—'}
+                      </TableCell>
+                      <TableCell>
+                        {r.business_details && Object.keys(r.business_details as object).length > 0 ? (
+                          <Button type="button" variant="link" className="h-auto p-0" onClick={() => setDetailRow(r)}>
+                            {t('admin.vendorApps.viewVerification')}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusVariant(r.status)}>{statusLabel(r.status)}</Badge>
@@ -202,6 +241,65 @@ export function AdminVendorApplicationsContent() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!detailRow} onOpenChange={(o) => !o && setDetailRow(null)}>
+        <DialogContent className="max-h-[min(90vh,720px)] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('admin.vendorApps.verificationDialogTitle')}</DialogTitle>
+            <DialogDescription>
+              {detailRow?.business_name} — {detailRow?.applicant_name || detailRow?.applicant_phone || ''}
+            </DialogDescription>
+          </DialogHeader>
+          {detailRow && isVendorBusinessDetails(detailRow.business_details) ? (
+            <dl className="grid gap-3 text-sm">
+              <div>
+                <dt className="font-medium text-muted-foreground">{t('sellerApply.businessType')}</dt>
+                <dd>{businessTypeLabel(detailRow.business_details.business_type, t)}</dd>
+              </div>
+              {detailRow.business_details.registration_or_tin ? (
+                <div>
+                  <dt className="font-medium text-muted-foreground">{t('sellerApply.registrationTin')}</dt>
+                  <dd>{detailRow.business_details.registration_or_tin}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt className="font-medium text-muted-foreground">{t('sellerApply.businessEmail')}</dt>
+                <dd>{detailRow.business_details.business_email}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-muted-foreground">{t('sellerApply.physicalAddress')}</dt>
+                <dd>{detailRow.business_details.physical_address}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-muted-foreground">{t('sellerApply.city')}</dt>
+                <dd>{detailRow.business_details.city}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-muted-foreground">{t('sellerApply.region')}</dt>
+                <dd>{detailRow.business_details.region}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-muted-foreground">{t('sellerApply.brandsCategories')}</dt>
+                <dd className="whitespace-pre-wrap">{detailRow.business_details.brands_categories}</dd>
+              </div>
+              {detailRow.business_details.years_in_business ? (
+                <div>
+                  <dt className="font-medium text-muted-foreground">{t('sellerApply.yearsInBusiness')}</dt>
+                  <dd>{detailRow.business_details.years_in_business}</dd>
+                </div>
+              ) : null}
+              {detailRow.business_details.website_or_social ? (
+                <div>
+                  <dt className="font-medium text-muted-foreground">{t('sellerApply.websiteOrSocial')}</dt>
+                  <dd className="break-all">{detailRow.business_details.website_or_social}</dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : detailRow ? (
+            <p className="text-sm text-muted-foreground">{t('admin.vendorApps.noVerificationData')}</p>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

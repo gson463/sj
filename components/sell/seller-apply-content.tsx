@@ -1,18 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Loader2, Store } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Store } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import type { VendorApplication } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { VendorApplyModal } from '@/components/sell/vendor-apply-modal'
 
 type Props = {
   user: User | null
@@ -23,47 +21,18 @@ type Props = {
 export function SellerApplyContent({ user, profileRole, latestApplication }: Props) {
   const { t } = useLanguage()
   const router = useRouter()
-  const [businessName, setBusinessName] = useState('')
-  const [contactPhone, setContactPhone] = useState('')
-  const [message, setMessage] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const [modalOpen, setModalOpen] = useState(false)
 
   const isCustomer = user && profileRole === 'customer'
   const pending = latestApplication?.status === 'pending'
   const rejected = latestApplication?.status === 'rejected'
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!isCustomer) return
-    setSubmitting(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/vendor/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          business_name: businessName,
-          contact_phone: contactPhone,
-          message: message.trim() || null,
-        }),
-      })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        if (j.error === 'pending_exists' || res.status === 409) {
-          setError(t('sellerApply.errorPending'))
-        } else if (j.error === 'only_customers') {
-          setError(t('sellerApply.errorRole'))
-        } else {
-          setError(t('sellerApply.errorGeneric'))
-        }
-        return
-      }
-      router.refresh()
-    } finally {
-      setSubmitting(false)
+  useEffect(() => {
+    if (searchParams.get('apply') === '1' && isCustomer && !pending) {
+      setModalOpen(true)
     }
-  }
+  }, [searchParams, isCustomer, pending])
 
   return (
     <div className="mx-auto max-w-2xl px-3 py-12 sm:px-4 sm:py-16">
@@ -83,10 +52,10 @@ export function SellerApplyContent({ user, profileRole, latestApplication }: Pro
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/auth/login?redirect=/sell">{t('sellerApply.loginCta')}</Link>
+              <Link href="/auth/login?redirect=/sell%3Fapply%3D1">{t('sellerApply.loginCta')}</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/auth/sign-up?redirect=/sell">{t('sellerApply.signupCta')}</Link>
+              <Link href="/auth/sign-up?redirect=/sell%3Fapply%3D1">{t('sellerApply.signupCta')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -109,63 +78,23 @@ export function SellerApplyContent({ user, profileRole, latestApplication }: Pro
             </Alert>
           ) : null}
 
-          {error ? (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-
           <Card>
             <CardHeader>
               <CardTitle>{t('sellerApply.formTitle')}</CardTitle>
-              <CardDescription>{t('sellerApply.formDesc')}</CardDescription>
+              <CardDescription>{t('sellerApply.formDescModal')}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="biz">{t('sellerApply.businessName')}</Label>
-                  <Input
-                    id="biz"
-                    required
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder={t('sellerApply.businessPlaceholder')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">{t('sellerApply.contactPhone')}</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    required
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder={t('sellerApply.phonePlaceholder')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="msg">{t('sellerApply.message')}</Label>
-                  <Textarea
-                    id="msg"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder={t('sellerApply.messagePlaceholder')}
-                    rows={4}
-                  />
-                </div>
-                <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>
-                  {submitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t('sellerApply.submitting')}
-                    </>
-                  ) : (
-                    t('sellerApply.submit')
-                  )}
-                </Button>
-              </form>
+              <Button type="button" size="lg" className="w-full sm:w-auto" onClick={() => setModalOpen(true)}>
+                {t('sellerApply.openModalCta')}
+              </Button>
             </CardContent>
           </Card>
+
+          <VendorApplyModal
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+            onSubmitted={() => router.refresh()}
+          />
         </>
       )}
     </div>

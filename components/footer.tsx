@@ -10,7 +10,7 @@ export function Footer() {
 
   const quickLinks = [
     { href: '/shop', label: t('nav.shop') },
-    { href: '/sell', label: t('nav.sell') },
+    { href: '/sell?apply=1', label: t('nav.sell') },
     { href: '#how-it-works', label: t('nav.lipaKidogo') },
     { href: '/about', label: t('nav.about') },
     { href: '/faq', label: locale === 'en' ? 'FAQ' : 'Maswali Yanayoulizwa' },

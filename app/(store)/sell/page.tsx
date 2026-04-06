@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SellerApplyContent } from '@/components/sell/seller-apply-content'
@@ -39,5 +40,9 @@ export default async function SellPage() {
     }
   }
 
-  return <SellerApplyContent user={user} profileRole={profileRole} latestApplication={latestApplication} />
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-2xl px-3 py-24 min-h-[40vh] animate-pulse rounded-xl bg-muted/30" />}>
+      <SellerApplyContent user={user} profileRole={profileRole} latestApplication={latestApplication} />
+    </Suspense>
+  )
 }
