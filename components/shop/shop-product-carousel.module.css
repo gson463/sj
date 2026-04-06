@@ -1,0 +1,7 @@
+.progressFill {
+  width: var(--carousel-progress, 10%);
+}
+
+.progressFillMobile {
+  width: var(--carousel-progress, 12%);
+}
